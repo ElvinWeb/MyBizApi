@@ -61,7 +61,7 @@ namespace MyBizApi.Controllers
 
         }
         [HttpPost]
-        public async Task<IActionResult> Create(EmployeeCreateDto employeeCreateDto, IFormFile ImgFile)
+        public async Task<IActionResult> Create([FromForm] EmployeeCreateDto employeeCreateDto)
         {
             Employee employee = _mapper.Map<Employee>(employeeCreateDto);
 
@@ -94,7 +94,7 @@ namespace MyBizApi.Controllers
             }
 
             string folder = "Uploads/employeesImages";
-            string newImgUrl = await Helper.GetFileName(_env.WebRootPath, folder, employeeCreateDto.ImgFile);
+            string newImgUrl = await Helper.GetFileName(folder, employeeCreateDto.ImgFile);
 
 
             employee.CreatedDate = DateTime.UtcNow.AddHours(4);
@@ -110,7 +110,7 @@ namespace MyBizApi.Controllers
         }
 
         [HttpPut("")]
-        public async Task<IActionResult> Update(EmployeeUpdateDto employeeUpdateDto)
+        public async Task<IActionResult> Update([FromForm] EmployeeUpdateDto employeeUpdateDto)
         {
             if (employeeUpdateDto.Id == null && employeeUpdateDto.Id <= 0) return NotFound();
 
@@ -124,6 +124,32 @@ namespace MyBizApi.Controllers
             //employee.ProfessionId = employeeUpdateDto.ProfessionId;
             //employee.RedirectUrl = employeeUpdateDto.RedirectUrl;
             #endregion
+
+            if (employeeUpdateDto.ImgFile != null)
+            {
+
+                if (employeeUpdateDto.ImgFile.ContentType != "image/png" && employeeUpdateDto.ImgFile.ContentType != "image/jpeg")
+                {
+                    throw new InvalidContentTypeOrImageSize("Image", "please select correct file type");
+                }
+
+                if (employeeUpdateDto.ImgFile.Length > 1048576)
+                {
+                    throw new InvalidContentTypeOrImageSize("Image", "file size should be more lower than 1mb");
+                }
+
+                string folder = "Uploads/employeesImages";
+                string newFilePath = await Helper.GetFileName(folder, employeeUpdateDto.ImgFile);
+
+                string oldFilePath = Path.Combine(folder, employee.ImgUrl);
+
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    System.IO.File.Delete(oldFilePath);
+                }
+
+                employee.ImgUrl = newFilePath;
+            }
 
             employee = _mapper.Map(employeeUpdateDto, employee);
             employee.UpdatedDate = DateTime.UtcNow.AddHours(4);
@@ -158,6 +184,13 @@ namespace MyBizApi.Controllers
             Employee employee = await _context.Employees.FirstOrDefaultAsync(emp => emp.Id == id);
 
             if (employee is null) return NotFound();
+
+            string fullPath = Path.Combine("Uploads/employeesImages", employee.ImgUrl);
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
             employee.DeletedDate = DateTime.UtcNow.AddHours(4);
 
             _context.Employees.Remove(employee);

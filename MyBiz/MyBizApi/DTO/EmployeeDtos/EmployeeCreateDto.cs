@@ -26,7 +26,7 @@ namespace MyBizApi.DTO.EmployeeDtos
                .NotEmpty().WithMessage("Bos ola bilmez!")
                .NotNull().WithMessage("Null ola bilmez!")
                .MaximumLength(100).WithMessage("Max 100 ola biler!")
-               .MinimumLength(20).WithMessage("Min 5 ola biler!");
+               .MinimumLength(5).WithMessage("Min 5 ola biler!");
 
 
             RuleFor(emp => emp.RedirectUrl)

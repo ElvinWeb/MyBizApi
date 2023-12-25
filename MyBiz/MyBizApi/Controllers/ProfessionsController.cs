@@ -52,7 +52,7 @@ namespace MyBizApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ProfessionCreateDto professionCreateDto)
+        public async Task<IActionResult> Create([FromForm]ProfessionCreateDto professionCreateDto)
         {
             //Profession profession = new Profession()
             //{
@@ -69,11 +69,11 @@ namespace MyBizApi.Controllers
             await _context.Professions.AddAsync(profession);
             await _context.SaveChangesAsync();
 
-            return StatusCode(201);
+            return StatusCode(201, new { message = "Object yaradildi" });
         }
 
         [HttpPut("")]
-        public async Task<IActionResult> Update(ProfessionUpdateDto professionUpdateDto)
+        public async Task<IActionResult> Update([FromForm]ProfessionUpdateDto professionUpdateDto)
         {
             Profession profession = await _context.Professions.FirstOrDefaultAsync(profession => profession.Id == professionUpdateDto.Id);
 
